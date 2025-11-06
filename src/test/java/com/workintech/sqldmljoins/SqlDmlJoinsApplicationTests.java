@@ -1,5 +1,6 @@
 package com.workintech.sqldmljoins;
 
+import java.util.Locale;
 import com.workintech.sqldmljoins.entity.StudentNameCount;
 import com.workintech.sqldmljoins.repository.KitapRepository;
 import com.workintech.sqldmljoins.repository.OgrenciRepository;
@@ -15,84 +16,90 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@ExtendWith(ResultAnalyzer.class)	
+@ExtendWith(ResultAnalyzer.class)
 class SqlDmlJoinsApplicationTests {
 
-	private KitapRepository kitapRepository;
-	private OgrenciRepository ogrenciRepository;
+    static {
+        Locale.setDefault(Locale.US);
+    }
 
-	@Autowired
-	public SqlDmlJoinsApplicationTests(KitapRepository kitapRepository, OgrenciRepository ogrenciRepository) {
-		this.kitapRepository = kitapRepository;
-		this.ogrenciRepository = ogrenciRepository;
-	}
+    private final KitapRepository kitapRepository;
+    private final OgrenciRepository ogrenciRepository;
 
-	@DisplayName("Dram ve Hikaye türündeki kitapları listeleyin.")
-	@Test
-	void findBooksTest(){
-		assertEquals(kitapRepository.findBooks().size(), 3);
-	}
+    @Autowired
+    public SqlDmlJoinsApplicationTests(KitapRepository kitapRepository, OgrenciRepository ogrenciRepository) {
+        this.kitapRepository = kitapRepository;
+        this.ogrenciRepository = ogrenciRepository;
+    }
 
-	@DisplayName("Kitap alan öğrencilerin öğrenci bilgilerini listeleyin.")
-	@Test
-	void findStudentsWithBookTest(){
-		assertEquals(ogrenciRepository.findStudentsWithBook().size(), 17);
-	}
+    @DisplayName("Dram ve Hikaye türündeki kitapları listeleyin.")
+    @Test
+    void findBooksTest(){
+        assertEquals(3, kitapRepository.findBooks().size());
+    }
 
-	@DisplayName("Kitap almayan öğrencileri listeleyin.")
-	@Test
-	void findStudentsWithNoBookTest(){
-		assertEquals(ogrenciRepository.findStudentsWithNoBook().size(), 2);
-	}
+    @DisplayName("Kitap alan öğrencilerin öğrenci bilgilerini listeleyin.")
+    @Test
+    void findStudentsWithBookTest(){
+        assertEquals(17, ogrenciRepository.findStudentsWithBook().size());
+    }
 
-	@DisplayName("Kitap almayan öğrencileri listeleyin.")
-	@Test
-	void findClassesWithBookCountTest(){
-		assertEquals(ogrenciRepository.findClassesWithBookCount().size(), 2);
-		assertEquals(ogrenciRepository.findClassesWithBookCount().get(0).getCount(), 6);
-	}
+    @DisplayName("Kitap almayan öğrencileri listeleyin.")
+    @Test
+    void findStudentsWithNoBookTest(){
+        assertEquals(2, ogrenciRepository.findStudentsWithNoBook().size());
+    }
 
-	@DisplayName("Öğrenci tablosundaki öğrenci sayısını gösterin.")
-	@Test
-	void findStudentCountTest(){
-		assertEquals(ogrenciRepository.findStudentCount(), 10);
-	}
+    @DisplayName("10A ve 10B sınıflarındaki öğrencilerin sınıf ve okuduğu kitap sayısı")
+    @Test
+    void findClassesWithBookCountTest(){
+        assertEquals(2, ogrenciRepository.findClassesWithBookCount().size());
+        assertEquals(6, ogrenciRepository.findClassesWithBookCount().get(0).getCount());
+    }
 
-	@DisplayName("Öğrenci tablosunda kaç farklı isimde öğrenci olduğunu listeleyiniz.")
-	@Test
-	void findUniqueStudentNameCountTest(){
-		assertEquals(ogrenciRepository.findUniqueStudentNameCount(), 9);
-	}
+    @DisplayName("Öğrenci tablosundaki öğrenci sayısını gösterin.")
+    @Test
+    void findStudentCountTest(){
+        assertEquals(10, ogrenciRepository.findStudentCount());
+    }
 
-	@DisplayName("Öğrenci tablosunda kaç farklı isimde öğrenci olduğunu listeleyiniz.")
-	@Test
-	void findStudentNameCountTest(){
-		List<StudentNameCount> studentNameCountList = ogrenciRepository.findStudentNameCount();
-		StudentNameCount sema = studentNameCountList.stream().filter(studentNameCount -> studentNameCount.getAd().equals("Sema"))
-						.collect(Collectors.toList()).get(0);
+    @DisplayName("Öğrenci tablosunda kaç farklı isimde öğrenci olduğunu listeleyiniz.")
+    @Test
+    void findUniqueStudentNameCountTest(){
+        assertEquals(9, ogrenciRepository.findUniqueStudentNameCount());
+    }
 
-		assertEquals(sema.getCount(), 2);
-		assertEquals(ogrenciRepository.findStudentNameCount().size(), 9);
-	}
+    @DisplayName("İsme göre öğrenci sayılarının adedini bulunuz.")
+    @Test
+    void findStudentNameCountTest(){
+        List<StudentNameCount> studentNameCountList = ogrenciRepository.findStudentNameCount();
+        StudentNameCount sema = studentNameCountList.stream()
+                .filter(studentNameCount -> studentNameCount.getAd().equals("Sema"))
+                .collect(Collectors.toList()).get(0);
 
-	@DisplayName("Her sınıftaki öğrenci sayısını bulunuz..")
-	@Test
-	void findStudentClassCountTest(){
-		assertEquals(ogrenciRepository.findStudentClassCount().get(0).getSinif(), "9C");
-		assertEquals(ogrenciRepository.findStudentClassCount().get(0).getCount(), 2);
-		assertEquals(ogrenciRepository.findStudentClassCount().size(), 6);
-	}
+        assertEquals(2, sema.getCount());
+        assertEquals(9, ogrenciRepository.findStudentNameCount().size());
+    }
 
-	@DisplayName("Her öğrencinin ad soyad karşılığında okuduğu kitap sayısını getiriniz.")
-	@Test
-	void findStudentNameSurnameCountTest(){
-		assertEquals(ogrenciRepository.findStudentNameSurnameCount().get(0).getAd(), "Deniz");
-		assertEquals(ogrenciRepository.findStudentNameSurnameCount().size(), 8);
-	}
+    @DisplayName("Her sınıftaki öğrenci sayısını bulunuz..")
+    @Test
+    void findStudentClassCountTest(){
+        assertEquals("9C", ogrenciRepository.findStudentClassCount().get(0).getSinif());
+        assertEquals(2, ogrenciRepository.findStudentClassCount().get(0).getCount());
+        assertEquals(6, ogrenciRepository.findStudentClassCount().size());
+    }
 
-	@DisplayName("Tüm kitapların ortalama puanını bulunuz.")
-	@Test
-	void findAvgPointOfBooksTest(){
-		assertEquals(String.format("%.2f", kitapRepository.findAvgPointOfBooks()), "19.42");
-	}
+    @DisplayName("Her öğrencinin ad soyad karşılığında okuduğu kitap sayısını getiriniz.")
+    @Test
+    void findStudentNameSurnameCountTest(){
+        assertEquals("Deniz", ogrenciRepository.findStudentNameSurnameCount().get(0).getAd());
+        assertEquals(8, ogrenciRepository.findStudentNameSurnameCount().size());
+    }
+
+    @DisplayName("Tüm kitapların ortalama puanını bulunuz.")
+    @Test
+    void findAvgPointOfBooksTest(){
+        assertEquals("19.42", String.format("%.2f", kitapRepository.findAvgPointOfBooks()));
+    }
 }
+

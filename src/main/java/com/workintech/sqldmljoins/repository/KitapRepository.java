@@ -8,15 +8,25 @@ import java.util.List;
 
 public interface KitapRepository extends JpaRepository<Kitap, Long> {
 
-    //Dram ve Hikaye türündeki kitapları listeleyin. JOIN kullanmadan yapın.
-    String QUESTION_1 = "";
+    // 1) Dram ve Hikaye türündeki kitaplar (JOIN yok; alt sorgu)
+    // DİKKAT: sıralama kitapno ile; "id" kolonu yok.
+    String QUESTION_1 = """
+            SELECT k.*
+            FROM kitap k
+            WHERE k.turno IN (
+                SELECT t.turno
+                FROM tur t
+                WHERE t.ad IN ('Dram','Hikaye')
+            )
+            ORDER BY k.kitapno
+            """;
     @Query(value = QUESTION_1, nativeQuery = true)
     List<Kitap> findBooks();
 
-
-    String QUESTION_10 = "";
+    // 10) Kitapların ortalama puanı
+    String QUESTION_10 = """
+            SELECT AVG(puan) FROM kitap
+            """;
     @Query(value = QUESTION_10, nativeQuery = true)
     Double findAvgPointOfBooks();
-
-
 }
